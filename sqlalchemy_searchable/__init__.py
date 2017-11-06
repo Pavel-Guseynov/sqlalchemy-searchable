@@ -177,15 +177,16 @@ class SQLConstruct(object):
             pass
         else:
             value = vectorizer_func(value)
-        value = sa.func.coalesce(value, sa.text("''"))
+        if not str(column.type) == 'JSONB':
+            value = sa.func.coalesce(value, sa.text("''"))
 
-        if self.options['remove_symbols']:
-            value = sa.func.regexp_replace(
-                value,
-                sa.text("'[{0}]'".format(self.options['remove_symbols'])),
-                sa.text("' '"),
-                sa.text("'g'")
-            )
+            if self.options['remove_symbols']:
+                value = sa.func.regexp_replace(
+                    value,
+                    sa.text("'[{0}]'".format(self.options['remove_symbols'])),
+                    sa.text("' '"),
+                    sa.text("'g'")
+                )
         value = sa.func.to_tsvector(self.options['regconfig'], value)
         if column.name in self.options['weights']:
             weight = self.options['weights'][column.name]
